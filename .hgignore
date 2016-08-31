@@ -1,0 +1,22 @@
+syntax: glob
+.gitignore
+.gradle
+local.properties
+.idea/workspace.xml
+.idea/libraries
+.DS_Store
+/build
+/captures
+app/build/*
+build/*
+bin
+gen
+out/
+*.iml
+.idea/gradle.xml
+.idea/.name
+.idea/vcs.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/runConfigurations.xml
+.idea/compiler.xml

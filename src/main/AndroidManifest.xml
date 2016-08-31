@@ -1,0 +1,9 @@
+<manifest
+        package="cn.asiontang.xposed">
+
+    <application
+            >
+
+    </application>
+
+</manifest>

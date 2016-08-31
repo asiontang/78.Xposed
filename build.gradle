@@ -1,0 +1,27 @@
+apply plugin: 'com.android.library'
+
+android {
+    //默认情况下没有启用发布所有Variant版本。导致主项目无法发现此library的buildTypes.debug
+    publishNonDefault true
+
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+    }
+
+    buildTypes {
+        debug {
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    provided files('libs/XposedBridgeApi-54.jar')
+}
