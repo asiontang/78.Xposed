@@ -120,6 +120,6 @@ public final class LogEx
 
     public static void log(final Object... e)
     {
-        log(any2String(e));
+        log(getDebugString(e));
     }
 }
