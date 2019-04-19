@@ -1,5 +1,6 @@
 package cn.asiontang.xposed;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -113,10 +114,33 @@ public class XposedUtils
     }
 
     /**
+     * <pre>
+     * XposedBridge类的 hookAllConstructors 函数只能 hook 当前类声明定义的方法getDeclaredConstructors,而那些没重载(写)过的只能Hook基类来实现.但是这样的代价可能就大了.
+     * 所以稍微改了一下.把内部使用
+     * getDeclaredConstructors 的地方改为了 getConstructors.这样就可以了.
+     * </pre>
+     */
+    public static Set<XC_MethodHook.Unhook> realHookAllConstructors(Class<?> hookClass, XC_MethodHook callback)
+    {
+        HashSet<XC_MethodHook.Unhook> unhooks = new HashSet<>();
+        for (Constructor<?> constructor : hookClass.getConstructors())
+            unhooks.add(XposedBridge.hookMethod(constructor, callback));
+        return unhooks;
+    }
+
+    /**
      * @see #realHookAllMethods(Class, String, XC_MethodHook)
      */
     public static Set<XC_MethodHook.Unhook> realHookAllMethods(String hookClass, ClassLoader classLoader, String methodName, XC_MethodHook callback)
     {
         return realHookAllMethods(XposedHelpers.findClass(hookClass, classLoader), methodName, callback);
+    }
+
+    /**
+     * @see #realHookAllConstructors(Class, XC_MethodHook)
+     */
+    public static Set<XC_MethodHook.Unhook> realHookAllConstructors(String hookClass, ClassLoader classLoader, XC_MethodHook callback)
+    {
+        return realHookAllConstructors(XposedHelpers.findClass(hookClass, classLoader), callback);
     }
 }
