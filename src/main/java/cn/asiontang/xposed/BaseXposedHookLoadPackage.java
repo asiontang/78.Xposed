@@ -50,15 +50,12 @@ public abstract class BaseXposedHookLoadPackage implements IXposedHookLoadPackag
             if (isHandled)
             {
                 //调试模式输出标识以示区分.
-                if (BuildConfig.DEBUG)
-                    LogEx.log("[DEBUG MODE]");
-
-                LogEx.log(this.getClass().getPackage().getName(), "HookingPackageName:" + loadPackageParam.packageName);
+                LogEx.log(loadPackageParam.packageName, BuildConfig.DEBUG ? "[DEBUG MODE]" : "[RELEASE MODE]");
             }
         }
         catch (final Exception e)
         {
-            LogEx.log("handleLoadPackage Exception:");
+            LogEx.log(loadPackageParam.packageName, "handleLoadPackage Exception:");
             LogEx.log(e);
         }
     }
@@ -71,6 +68,40 @@ public abstract class BaseXposedHookLoadPackage implements IXposedHookLoadPackag
     private boolean invokeHandleLoadPackage4release(final XC_LoadPackage.LoadPackageParam loadPackageParam)//
             throws IOException, NoSuchMethodException, IllegalAccessException, InstantiationException, ClassNotFoundException, InvocationTargetException
     {
+        /*【方法4】*/
+        {
+            //因为新旧版本的APK所在目录不一样,所以换一种更加通用的办法获取所在路径.
+            // 1.旧版本路径是:/data/app/%s-%s.apk
+            // 2.新版本路径是:/data/app/%s-%s/base.apk
+
+            //TEST1: // com.thirdparty.superuser｜XposedBridge.BOOTCLASSLOADER｜dalvik.system.PathClassLoader[DexPathList[[zip file "/system/framework/XposedBridge.jar"],nativeLibraryDirectories=[/vendor/lib, /system/lib, /system/lib/arm]]]
+            //TEST1: LogEx.log(loadPackageParam.packageName, "XposedBridge.BOOTCLASSLOADER", XposedBridge.BOOTCLASSLOADER);
+
+            //TEST2: // com.thirdparty.superuser｜loadPackageParam.classLoader｜dalvik.system.PathClassLoader[DexPathList[[zip file "/system/app/Superuser/Superuser.apk"],nativeLibraryDirectories=[/system/app/Superuser/lib/x86, /vendor/lib, /system/lib, /system/lib/arm]]]
+            //TEST2: LogEx.log(loadPackageParam.packageName, "loadPackageParam.classLoader", loadPackageParam.classLoader);
+
+            //TEST3: // com.thirdparty.superuser｜this.getClass().getPackage().getName()｜cn.asiontang.xposed.auto_js_pro
+            //TEST3: LogEx.log(loadPackageParam.packageName, "this.getClass().getPackage().getName()", this.getClass().getPackage().getName());
+
+            //TEST4: // com.thirdparty.superuser｜this.getClass().getPackage().getClassLoader()｜dalvik.system.PathClassLoader[DexPathList[[zip file "/data/app/cn.asiontang.xposed.auto_js_pro-1/base.apk"],nativeLibraryDirectories=[/vendor/lib, /system/lib, /system/lib/arm]]]
+            //TEST4: LogEx.log(loadPackageParam.packageName, "this.getClass().getPackage().getClassLoader()", this.getClass().getClassLoader());
+
+            //输入:dalvik.system.PathClassLoader[DexPathList[[zip file "/data/app/cn.asiontang.xposed.auto_js_pro-1/base.apk"],nativeLibraryDirectories
+            String apkFilePath = String.valueOf(getClass().getClassLoader());
+            //结果:/data/app/cn.asiontang.xposed.auto_js_pro-1/base.apk
+            apkFilePath = apkFilePath.substring(apkFilePath.indexOf("/data/app"), apkFilePath.indexOf(".apk\"]") + 4);
+            if (!new File(apkFilePath).exists())
+            {
+                LogEx.log(loadPackageParam.packageName, "Error:在/data/app找不到插件对应的.apk包", "apkFilePath=", apkFilePath);
+                return false;
+            }
+
+            final PathClassLoader pathClassLoader = new PathClassLoader(apkFilePath, ClassLoader.getSystemClassLoader());
+            final Class<?> aClass = Class.forName(getClassNameFromAsset(pathClassLoader), true, pathClassLoader);
+            final Method aClassMethod = aClass.getMethod("handleLoadPackage4release", XC_LoadPackage.LoadPackageParam.class);
+            return (Boolean) aClassMethod.invoke(aClass.newInstance(), loadPackageParam);
+        }
+
         /*【方法3】*/
         /************************************************************
          *获取当前APK的包名,而不是当前框架的包名
@@ -78,21 +109,21 @@ public abstract class BaseXposedHookLoadPackage implements IXposedHookLoadPackag
          * 1.BaseXposedHookLoadPackage.class.getPackage().getName();
          * 2.BuildConfig.APPLICATION_ID
          ************************************************************/
-        final String packageName = this.getClass().getPackage().getName();
-        String apkFilePath = String.format("/data/app/%s-%s.apk", packageName, 1);
-        if (!new File(apkFilePath).exists())
-        {
-            apkFilePath = String.format("/data/app/%s-%s.apk", packageName, 2);
-            if (!new File(apkFilePath).exists())
-            {
-                LogEx.log("Error:在/data/app找不到.apk包" + packageName);
-                return false;
-            }
-        }
-        final PathClassLoader pathClassLoader = new PathClassLoader(apkFilePath, ClassLoader.getSystemClassLoader());
-        final Class<?> aClass = Class.forName(getClassNameFromAsset(pathClassLoader), true, pathClassLoader);
-        final Method aClassMethod = aClass.getMethod("handleLoadPackage4release", XC_LoadPackage.LoadPackageParam.class);
-        return (Boolean) aClassMethod.invoke(aClass.newInstance(), loadPackageParam);
+        //final String packageName = this.getClass().getPackage().getName();
+        //String apkFilePath = String.format("/data/app/%s-%s.apk", packageName, 1);
+        //if (!new File(apkFilePath).exists())
+        //{
+        //    apkFilePath = String.format("/data/app/%s-%s.apk", packageName, 2);
+        //    if (!new File(apkFilePath).exists())
+        //    {
+        //        LogEx.log(loadPackageParam.packageName, "Error:在/data/app找不到.apk包" + packageName);
+        //        return false;
+        //    }
+        //}
+        //final PathClassLoader pathClassLoader = new PathClassLoader(apkFilePath, ClassLoader.getSystemClassLoader());
+        //final Class<?> aClass = Class.forName(getClassNameFromAsset(pathClassLoader), true, pathClassLoader);
+        //final Method aClassMethod = aClass.getMethod("handleLoadPackage4release", XC_LoadPackage.LoadPackageParam.class);
+        //return (Boolean) aClassMethod.invoke(aClass.newInstance(), loadPackageParam);
 
         /*【方法2】*/
         //final String packageName = 项目的类.class.getPackage().getName();
@@ -102,7 +133,7 @@ public abstract class BaseXposedHookLoadPackage implements IXposedHookLoadPackag
         //    apkFilePath = String.format("/data/app/%s-%s.apk", packageName, 2);
         //    if (!new File(apkFilePath).exists())
         //    {
-        //        LogEx.log("Error:在/data/app找不到APK文件" + packageName);
+        //        LogEx.log(loadPackageParam.packageName, "Error:在/data/app找不到APK文件" + packageName);
         //        return;
         //    }
         //}
