@@ -93,7 +93,16 @@ public abstract class BaseXposedHookLoadPackage implements IXposedHookLoadPackag
             if (!new File(apkFilePath).exists())
             {
                 //每次DEBUG运行时,就会自动增加到2.所以需要适配.
-                apkFilePath = apkFilePath.replace("1/base.apk", "2/base.apk");
+                if (apkFilePath.contains("1/base.apk"))
+                    apkFilePath = apkFilePath.replace("1/base.apk", "2/base.apk");
+                else if (apkFilePath.contains("2/base.apk"))
+                    apkFilePath = apkFilePath.replace("2/base.apk", "1/base.apk");
+                else
+                {
+                    LogEx.log(loadPackageParam.packageName, "Error:意料外的路径格式,文件夹尾字符既不是1也不是2", "apkFilePath=", apkFilePath);
+                    return false;
+                }
+
                 if (!new File(apkFilePath).exists())
                 {
                     LogEx.log(loadPackageParam.packageName, "Error:在/data/app找不到插件对应的.apk包", "apkFilePath=", apkFilePath);
