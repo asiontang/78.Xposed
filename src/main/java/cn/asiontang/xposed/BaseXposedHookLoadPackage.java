@@ -14,6 +14,8 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 public abstract class BaseXposedHookLoadPackage implements IXposedHookLoadPackage
 {
+    private static final String TAG = BaseXposedHookLoadPackage.class.getName();
+
     /**
      * 通过读取Xposed的配置文件得到实际项目中的入口HookLoadPackage类.
      */
@@ -50,12 +52,12 @@ public abstract class BaseXposedHookLoadPackage implements IXposedHookLoadPackag
             if (isHandled)
             {
                 //调试模式输出标识以示区分.
-                LogEx.log(loadPackageParam.packageName, BuildConfig.DEBUG ? "[DEBUG MODE]" : "[RELEASE MODE]");
+                LogEx.log(TAG, loadPackageParam.packageName, BuildConfig.DEBUG ? "[DEBUG MODE]" : "[RELEASE MODE]");
             }
         }
         catch (final Exception e)
         {
-            LogEx.log(loadPackageParam.packageName, "handleLoadPackage Exception:");
+            LogEx.log(TAG, loadPackageParam.packageName, "handleLoadPackage Exception:");
             LogEx.log(e);
         }
     }
@@ -105,7 +107,7 @@ public abstract class BaseXposedHookLoadPackage implements IXposedHookLoadPackag
 
                 if (!new File(apkFilePath).exists())
                 {
-                    LogEx.log(loadPackageParam.packageName, "Error:在/data/app找不到插件对应的.apk包", "apkFilePath=", apkFilePath);
+                    LogEx.log(TAG, loadPackageParam.packageName, "Error:在/data/app找不到插件对应的.apk包", "apkFilePath=", apkFilePath);
                     return false;
                 }
             }
