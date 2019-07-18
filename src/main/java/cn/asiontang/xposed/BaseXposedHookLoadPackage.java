@@ -92,8 +92,13 @@ public abstract class BaseXposedHookLoadPackage implements IXposedHookLoadPackag
             apkFilePath = apkFilePath.substring(apkFilePath.indexOf("/data/app"), apkFilePath.indexOf(".apk\"]") + 4);
             if (!new File(apkFilePath).exists())
             {
-                LogEx.log(loadPackageParam.packageName, "Error:在/data/app找不到插件对应的.apk包", "apkFilePath=", apkFilePath);
-                return false;
+                //每次DEBUG运行时,就会自动增加到2.所以需要适配.
+                apkFilePath = apkFilePath.replace("1/base.apk", "2/base.apk");
+                if (!new File(apkFilePath).exists())
+                {
+                    LogEx.log(loadPackageParam.packageName, "Error:在/data/app找不到插件对应的.apk包", "apkFilePath=", apkFilePath);
+                    return false;
+                }
             }
 
             final PathClassLoader pathClassLoader = new PathClassLoader(apkFilePath, ClassLoader.getSystemClassLoader());
