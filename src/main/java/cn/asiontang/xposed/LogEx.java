@@ -83,14 +83,16 @@ public final class LogEx
      */
     public static String getDebugString(final Object... objs)
     {
+        if (objs == null)
+            return "[null]";
         final StringBuilder msg = new StringBuilder();
         boolean firstTime = true;
         for (final Object item : objs)
         {
             if (firstTime)
                 firstTime = false;
-            else
-                msg.append("｜");
+            else if (msg.lastIndexOf("=") != msg.length() - 1)//当上个输出调试信息项目末尾以=号结尾时,不再额外添加分割线.方便调试时候输出键值对key= | value 优化后| key=value |
+                msg.append(" | ");//从中文符号｜替换为英文|，方便在文本编辑器里快速双击选中单词，中文分隔符的情况下，英文文本编辑器如（sublimetext）无法正常识别分隔符。
 
             //存在一种可能，item本身就是一个数组！！
             if (item instanceof Object[])
