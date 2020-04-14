@@ -1,0 +1,13 @@
+<manifest xmlns:tools="http://schemas.android.com/tools"
+        package="cn.asiontang.xposed"
+        xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <provider
+                android:authorities="DebugInfoContentProvider"
+                android:name=".DebugInfoContentProvider"
+                android:exported="true"
+                tools:ignore="ExportedContentProvider" />
+    </application>
+
+</manifest>

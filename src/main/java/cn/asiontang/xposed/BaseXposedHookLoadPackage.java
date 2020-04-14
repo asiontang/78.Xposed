@@ -26,7 +26,10 @@ public abstract class BaseXposedHookLoadPackage implements IXposedHookLoadPackag
         try
         {
             moduleClassesReader = new BufferedReader(new InputStreamReader(is));
-            return moduleClassesReader.readLine().trim();
+            String s = moduleClassesReader.readLine().trim();
+            //调试模式输出标识以示区分.
+            LogEx.log(TAG, "getClassNameFromAsset", s);
+            return s;
         }
         finally
         {
@@ -86,6 +89,8 @@ public abstract class BaseXposedHookLoadPackage implements IXposedHookLoadPackag
                 LogEx.log(TAG, loadPackageParam.packageName, "Error:在/data/app找不到插件对应的.apk包", "apkFilePath=", newApkFullPath);
                 return false;
             }
+            LogEx.log(TAG, loadPackageParam.packageName, "newApkFullPath=", newApkFullPath);
+
             final PathClassLoader pathClassLoader = new PathClassLoader(newApkFullPath, ClassLoader.getSystemClassLoader());
             final Class<?> aClass = Class.forName(getClassNameFromAsset(pathClassLoader), true, pathClassLoader);
             final Method aClassMethod = aClass.getMethod("handleLoadPackage4release", XC_LoadPackage.LoadPackageParam.class);
