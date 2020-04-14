@@ -70,7 +70,28 @@ public abstract class BaseXposedHookLoadPackage implements IXposedHookLoadPackag
     private boolean invokeHandleLoadPackage4release(final XC_LoadPackage.LoadPackageParam loadPackageParam)//
             throws IOException, NoSuchMethodException, IllegalAccessException, InstantiationException, ClassNotFoundException, InvocationTargetException
     {
-        /*【方法4】*/
+        /*【方法5】*/
+        {
+            //需要解决新版本系统调试版本的路径随机化的问题:
+            //Android 8拿到的调试包地址为: /data/app/cn.asiontang.xposed.auto_js_pro-TbJBoU7ixhS0Fiv8Z6qf7g==/base.apk 地址
+            String newApkFullPath = DebugModeUtils.getNewApkFullPath();
+            if (newApkFullPath == null)
+            {
+                LogEx.log(TAG, loadPackageParam.packageName, "Error:在指定目录获取不到.apk包最新地址", "Dir=", DebugModeUtils.DEBUG_MODE_NEW_APK_FULL_PATH_CONFIG);
+                return false;
+            }
+            File file = new File(newApkFullPath);
+            if (!file.exists())
+            {
+                LogEx.log(TAG, loadPackageParam.packageName, "Error:在/data/app找不到插件对应的.apk包", "apkFilePath=", newApkFullPath);
+                return false;
+            }
+            final PathClassLoader pathClassLoader = new PathClassLoader(newApkFullPath, ClassLoader.getSystemClassLoader());
+            final Class<?> aClass = Class.forName(getClassNameFromAsset(pathClassLoader), true, pathClassLoader);
+            final Method aClassMethod = aClass.getMethod("handleLoadPackage4release", XC_LoadPackage.LoadPackageParam.class);
+            return (Boolean) aClassMethod.invoke(aClass.newInstance(), loadPackageParam);
+        }
+        /*【方法4】
         {
             //因为新旧版本的APK所在目录不一样,所以换一种更加通用的办法获取所在路径.
             // 1.旧版本路径是:/data/app/%s-%s.apk
@@ -116,7 +137,7 @@ public abstract class BaseXposedHookLoadPackage implements IXposedHookLoadPackag
             final Class<?> aClass = Class.forName(getClassNameFromAsset(pathClassLoader), true, pathClassLoader);
             final Method aClassMethod = aClass.getMethod("handleLoadPackage4release", XC_LoadPackage.LoadPackageParam.class);
             return (Boolean) aClassMethod.invoke(aClass.newInstance(), loadPackageParam);
-        }
+        }*/
 
         /*【方法3】*/
         /************************************************************

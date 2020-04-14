@@ -15,6 +15,8 @@ import de.robv.android.xposed.XposedHelpers;
 
 public class XposedUtils
 {
+    private static final String TAG = "XposedUtils";
+
     /**
      * 将指定类的所有方法都显示出来看看
      */
@@ -99,22 +101,6 @@ public class XposedUtils
 
     /**
      * <pre>
-     * XposedBridge类的 hookAllMethods 函数只能 hook 当前类声明定义的方法,而那些没重载(写)过的只能Hook基类来实现.但是这样的代价可能就大了.
-     * 所以稍微改了一下.把内部使用
-     * getDeclaredMethods 的地方改为了 getMethods.这样就可以了.
-     * </pre>
-     */
-    public static Set<XC_MethodHook.Unhook> realHookAllMethods(Class<?> hookClass, String methodName, XC_MethodHook callback)
-    {
-        HashSet<XC_MethodHook.Unhook> unhooks = new HashSet<>();
-        for (Method method : hookClass.getMethods())
-            if (method.getName().equals(methodName))
-                unhooks.add(XposedBridge.hookMethod(method, callback));
-        return unhooks;
-    }
-
-    /**
-     * <pre>
      * XposedBridge类的 hookAllConstructors 函数只能 hook 当前类声明定义的方法getDeclaredConstructors,而那些没重载(写)过的只能Hook基类来实现.但是这样的代价可能就大了.
      * 所以稍微改了一下.把内部使用
      * getDeclaredConstructors 的地方改为了 getConstructors.这样就可以了.
@@ -129,6 +115,14 @@ public class XposedUtils
     }
 
     /**
+     * @see #realHookAllConstructors(Class, XC_MethodHook)
+     */
+    public static Set<XC_MethodHook.Unhook> realHookAllConstructors(String hookClass, ClassLoader classLoader, XC_MethodHook callback)
+    {
+        return realHookAllConstructors(XposedHelpers.findClass(hookClass, classLoader), callback);
+    }
+
+    /**
      * @see #realHookAllMethods(Class, String, XC_MethodHook)
      */
     public static Set<XC_MethodHook.Unhook> realHookAllMethods(String hookClass, ClassLoader classLoader, String methodName, XC_MethodHook callback)
@@ -137,10 +131,18 @@ public class XposedUtils
     }
 
     /**
-     * @see #realHookAllConstructors(Class, XC_MethodHook)
+     * <pre>
+     * XposedBridge类的 hookAllMethods 函数只能 hook 当前类声明定义的方法,而那些没重载(写)过的只能Hook基类来实现.但是这样的代价可能就大了.
+     * 所以稍微改了一下.把内部使用
+     * getDeclaredMethods 的地方改为了 getMethods.这样就可以了.
+     * </pre>
      */
-    public static Set<XC_MethodHook.Unhook> realHookAllConstructors(String hookClass, ClassLoader classLoader, XC_MethodHook callback)
+    public static Set<XC_MethodHook.Unhook> realHookAllMethods(Class<?> hookClass, String methodName, XC_MethodHook callback)
     {
-        return realHookAllConstructors(XposedHelpers.findClass(hookClass, classLoader), callback);
+        HashSet<XC_MethodHook.Unhook> unhooks = new HashSet<>();
+        for (Method method : hookClass.getMethods())
+            if (method.getName().equals(methodName))
+                unhooks.add(XposedBridge.hookMethod(method, callback));
+        return unhooks;
     }
 }
