@@ -32,7 +32,7 @@ public class DebugInfoContentProvider extends android.content.ContentProvider
         MatrixCursor matrixCursor = new MatrixCursor(new String[]{
                 COLUMN_NAME_NEW_APK_FULL_PATH
         }, 1);
-        matrixCursor.addRow(Collections.singletonList(DebugModeUtils.getNewApkFullPath()));
+        matrixCursor.addRow(Collections.singletonList(DebugModeUtils.getApkFileFullPath()));
         return matrixCursor;
     }
 

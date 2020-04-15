@@ -77,7 +77,9 @@ public abstract class BaseXposedHookLoadPackage implements IXposedHookLoadPackag
         {
             //需要解决新版本系统调试版本的路径随机化的问题:
             //Android 8拿到的调试包地址为: /data/app/cn.asiontang.xposed.auto_js_pro-TbJBoU7ixhS0Fiv8Z6qf7g==/base.apk 地址
-            String newApkFullPath = DebugModeUtils.getNewApkFullPath();
+            final String selfPackageName = this.getClass().getPackage().getName();
+            final String hookPackageName = loadPackageParam.packageName;
+            final String newApkFullPath = DebugModeUtils.getNewApkFullPathAcrossProcessByRoot(selfPackageName, hookPackageName);
             if (newApkFullPath == null)
             {
                 LogEx.log(TAG, loadPackageParam.packageName, "Error:在指定目录获取不到.apk包最新地址", "Dir=", DebugModeUtils.DEBUG_MODE_NEW_APK_FULL_PATH_CONFIG);
