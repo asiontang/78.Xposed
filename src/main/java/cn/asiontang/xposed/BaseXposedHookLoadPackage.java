@@ -97,11 +97,20 @@ public abstract class BaseXposedHookLoadPackage implements IXposedHookLoadPackag
             //在Android9.0报错:java.lang.ClassNotFoundException: Didn't find class "de.robv.android.xposed.IXposedHookLoadPackage"
             //NO:parentClassLoader = ClassLoader.getSystemClassLoader();
             //NO:parentClassLoader = loadPackageParam.classLoader;
-            parentClassLoader = this.getClass().getClassLoader();
+            //在Android9.0会导致反射失效,无法拿到最新的代码.
+            //NO:parentClassLoader = this.getClass().getClassLoader();
+            parentClassLoader = XC_LoadPackage.LoadPackageParam.class.getClassLoader();
             LogEx.log(TAG, "parentClassLoader=", parentClassLoader);
 
             final PathClassLoader pathClassLoader = new PathClassLoader(newApkFullPath, parentClassLoader);
-            final Class<?> aClass = Class.forName(getClassNameFromAsset(pathClassLoader), true, pathClassLoader);
+            LogEx.log(TAG, "pathClassLoader=", pathClassLoader);
+
+            //在Android9.0上使用 getClassNameFromAsset(pathClassLoader) 会报错
+            // java.io.FileNotFoundException: File doesn't exist: /data/app/cn.asiontang.xposed.heart_study-IBxQU_4AA4zvKX8qrEr-SA==/base.apk
+            //因为当存在 parentClassLoader 时,会优先找父的资源,结果此时APK文件已经删除掉了,所以报错找不到.
+            //所以需要一个单独的 resourcesLoader 使用 ClassLoader.getSystemClassLoader 作为parentClassLoader即可.
+            final PathClassLoader resourcesLoader = new PathClassLoader(newApkFullPath, ClassLoader.getSystemClassLoader());
+            final Class<?> aClass = Class.forName(getClassNameFromAsset(resourcesLoader), true, pathClassLoader);
 
             final Method aClassMethod = aClass.getMethod("handleLoadPackage4release", XC_LoadPackage.LoadPackageParam.class);
             return (Boolean) aClassMethod.invoke(aClass.newInstance(), loadPackageParam);
