@@ -93,8 +93,16 @@ public abstract class BaseXposedHookLoadPackage implements IXposedHookLoadPackag
             }
             LogEx.log(TAG, loadPackageParam.packageName, "newApkFullPath=", newApkFullPath);
 
-            final PathClassLoader pathClassLoader = new PathClassLoader(newApkFullPath, ClassLoader.getSystemClassLoader());
+            ClassLoader parentClassLoader;
+            //在Android9.0报错:java.lang.ClassNotFoundException: Didn't find class "de.robv.android.xposed.IXposedHookLoadPackage"
+            //NO:parentClassLoader = ClassLoader.getSystemClassLoader();
+            //NO:parentClassLoader = loadPackageParam.classLoader;
+            parentClassLoader = this.getClass().getClassLoader();
+            LogEx.log(TAG, "parentClassLoader=", parentClassLoader);
+
+            final PathClassLoader pathClassLoader = new PathClassLoader(newApkFullPath, parentClassLoader);
             final Class<?> aClass = Class.forName(getClassNameFromAsset(pathClassLoader), true, pathClassLoader);
+
             final Method aClassMethod = aClass.getMethod("handleLoadPackage4release", XC_LoadPackage.LoadPackageParam.class);
             return (Boolean) aClassMethod.invoke(aClass.newInstance(), loadPackageParam);
         }
