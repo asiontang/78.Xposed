@@ -82,7 +82,7 @@ public abstract class BaseXposedHookLoadPackage implements IXposedHookLoadPackag
             final String newApkFullPath = DebugModeUtils.getNewApkFullPathAcrossProcessByRoot(selfPackageName, hookPackageName);
             if (newApkFullPath == null)
             {
-                LogEx.log(TAG, loadPackageParam.packageName, "Error:在指定目录获取不到.apk包最新地址", "Dir=", DebugModeUtils.DEBUG_MODE_NEW_APK_FULL_PATH_CONFIG);
+                LogEx.log(TAG, loadPackageParam.packageName, "Error:在指定目录(/data/data/{hookPackageName}/cache/!Ye.DebugModeUtils)获取不到.apk包最新地址");
                 return false;
             }
             File file = new File(newApkFullPath);

@@ -1,6 +1,5 @@
 package cn.asiontang.xposed;
 
-import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
@@ -9,7 +8,6 @@ import cn.asiontang.ProcessShell;
 
 public class DebugModeUtils
 {
-    public static final File DEBUG_MODE_NEW_APK_FULL_PATH_CONFIG = new File(Environment.getExternalStorageDirectory(), "!Ye.DebugModeUtils");
     private static final String TAG = "Xposed.DebugModeUtils";
 
     /**
@@ -25,19 +23,6 @@ public class DebugModeUtils
         apkFilePath = apkFilePath.substring(apkFilePath.indexOf("/data/app"), apkFilePath.indexOf(".apk\"]") + 4);
         Log.d(TAG, "getApkFileFullPath | apkFilePath1=" + apkFilePath);
         return apkFilePath;
-    }
-
-    public static String getNewApkFullPathAcrossProcess()
-    {
-        //向/data/local/tmp目录写入DEBUG模式的APK所在新路径
-        File config = DEBUG_MODE_NEW_APK_FULL_PATH_CONFIG;
-        if (!config.exists())
-            return null;
-        String[] list = config.list();
-        if (list == null || list.length == 0)
-            return null;
-
-        return list[0].replace("._.", "/");
     }
 
     /**
@@ -64,37 +49,6 @@ public class DebugModeUtils
                 return apkFilePath;
             }
         return null;
-    }
-
-    public static boolean updateNewApkFullPath()
-    {
-        //向/data/local/tmp目录写入DEBUG模式的APK所在新路径
-        File config = DEBUG_MODE_NEW_APK_FULL_PATH_CONFIG;
-        if (config.exists())
-        {
-            File[] files = config.listFiles();
-            if (files != null && files.length > 0)
-                for (File file : files)
-                    Log.d(TAG, String.format("updateDebugModeNewApkFullPath | file.delete=%s | file=%s", file.delete(), file));
-        }
-        else
-        {
-            Log.d(TAG, "updateDebugModeNewApkFullPath | dir.mkdirs=" + config.mkdirs());
-        }
-        String apkFilePath = getApkFileFullPath();
-
-        //以完整路径名创建目录.
-        String safeApkFilePath = apkFilePath.replace("/", "._.");
-
-        File newFile = new File(config, safeApkFilePath);
-        newFile.mkdirs();
-
-        boolean exists = newFile.exists();
-
-        Log.d(TAG, String.format("updateDebugModeNewApkFullPath | apkFilePath2=%s, exists=%s", newFile, exists));
-        Log.d(TAG, String.format("updateDebugModeNewApkFullPath | apkFilePath3=%s, getNewApkFullPathTest=%s", getNewApkFullPathAcrossProcess(), apkFilePath.equals(getNewApkFullPathAcrossProcess())));
-
-        return exists;
     }
 
     /**
